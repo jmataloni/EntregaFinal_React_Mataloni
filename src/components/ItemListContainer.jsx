@@ -1,38 +1,40 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import {ItemList} from './ItemList'
+import { Spinner, Text, Container } from '@chakra-ui/react'
 import { useParams } from 'react-router-dom'
+import {collection, getDocs, getFirestore, where, query} from 'firebase/firestore'
 
 export const ItemListContainer = ({ greeting }) => {
+    const [loader, setLoader] = useState({})
     const {categoria} = useParams()
-    const productos = [
+    const [myProducts, setMyProducts] = useState([])
 
-        {id: 1, name: "Crema facial", descripcion:"Gel fluido de textura sedosa con un innovador activo biotecnológico bifuncional", price: 1000, categoria: "rostro"},
-        {id: 2, name: "Crema corporal", descripcion: "Emulsión corporal con una innovadora molécula de vitamina C, alfa arbutina, resveratrol, melanina y péptidos específicos.",price: 2000, categoria: "corporal"},
-        {id: 3, name: "Anti age", descripcion:"Crema de suave emoliencia con un complejo de cuatro moléculas de ácido hialurónico que asegura una hidratación prolongada", price: 3000, categoria: "rostro"},
-        {id: 4, name: "Paleta de Sombras", descripcion:"Prebase hidratante con Ácido Hialurónico. Prolonga la duración del maquillaje. ", price: 4000, categoria: "maquillaje"},
-        {id: 5, name: "Protector solar", descripcion:"Protector solar con una excelente dispersión que otorgan una protección solar de amplio espectro y previene el estrés oxidativo. ", price: 4000, categoria: "solar"}
-    ]
+    useEffect(() => {
+        const db = getFirestore()
+        setLoader(true)
+        const itemsCollection = categoria ? query(collection(db, "productos"), where("categoria", "==", categoria)): collection(db, "productos")
+        getDocs(itemsCollection)
+        .then((resultado) => {
+            const list = resultado.docs.map((producto) => {
+                return{
+                    id: producto.id, 
+                    ...producto.data()
+                }
+            })
+            setMyProducts(list)
+        })
+        .catch((error) => {console.log(error)})
+        .finally(() => setLoader(false))
+    
+    }, [categoria])
 
-    const mostrarProductos = new Promise((resolve, reject) => {
-        if(productos.length > 0){
-            setTimeout(()=>{
-                resolve(productos)
-            }, 2000)
-
-        } else {
-            reject("No se pueden mostrar los productos")
-        }
-    })
-
-    mostrarProductos
-    .then((resultado)=> {})
-    .catch((error)=> {console.log(error)})
-
-    const filteredProducts = productos.filter((producto) => producto.categoria === categoria)
     return (
-        <div>
-            <h2>{greeting}</h2>
-            <ItemList productos={filteredProducts}/>
-        </div>
+        <>
+            <Container centerContent>
+                <Text fontFamily='Aboreto' as='b' fontSize='20px' mb='10px'>{greeting}</Text>
+            </Container>
+            {loader ? <Spinner color='blue.500' size='xl' /> : <ItemList productos={myProducts} />}
+            
+        </>
     )
 }

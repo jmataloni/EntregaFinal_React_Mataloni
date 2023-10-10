@@ -1,51 +1,53 @@
-import { CardFooter, Heading, Center, CardBody, Text, Image, Stack, Card, Button } from '@chakra-ui/react'
-import React from 'react'
-import { useParams } from 'react-router-dom'
+import { CardFooter, Heading, Center, CardBody, Text, Image, Stack, Card, Button, ButtonGroup } from '@chakra-ui/react'
+import React, { useContext, useState } from 'react'
+import { Link, useParams } from 'react-router-dom'
+import { ItemCount } from './ItemCount'
+import { CartContext } from '../context/ShoppingCartContext'
 
-export const ItemDetail = ({ productos }) => {
+export const ItemDetail = ({ producto }) => {
 
-    const { id } = useParams()
-    const filteredProducts = productos.filter((producto) => producto.id == id)
+    /* const { id } = useParams() */
+    const [cantAgregada, setCantAgregada] = useState(false)
+    const {agregarCart} = useContext(CartContext)
 
+    const onAdd=(cantidad) => {
+        setCantAgregada(true)
+        agregarCart(producto, cantidad)
+    }
     return (
-        <div>
-            {filteredProducts.map((p) => {
-                return (
-                    <div key={p.id}>
-                        <Center p='1rem'>
-                            <Card maxW='sm'>
-                                <CardBody>
-                                    <Image
-                                        src='https://images.unsplash.com/photo-1546430454-045f92c202a8?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80'
-                                        alt='productos'
-                                        borderRadius='lg'
-                                    />
+            <Center p='1rem'>
+                <Card maxW='sm'>
+                    <CardBody>
+                        <Image
+                            src={producto.img}
+                            alt={producto.name}
+                            borderRadius='lg'
+                        />
 
-                                    <Stack mt='6' spacing='3'>
-                                        <Heading size='md'>{p.name}</Heading>
-                                        <Text>
-                                            ${p.price}
-                                        </Text>
-                                        <Text>
-                                            {p.descripcion}
-                                        </Text>
+                        <Stack mt='6' spacing='3'>
+                            <Heading  fontFamily='Albert Sans' fontSize='25px'>{producto.name}</Heading>
+                            <Text as='b'>
+                                ${producto.price}
+                            </Text>
+                            <Text>
+                                {producto.descripcion}
+                            </Text>
 
-                                    </Stack>
-                                </CardBody>
+                        </Stack>
+                    </CardBody>
 
-                                <CardFooter>
-                                    <Button variant='solid' colorScheme='blue'>
-                                        Agregar al carrito
-                                    </Button>
-                                </CardFooter>
-                            </Card>
+                    <CardFooter>
+                        { !cantAgregada ? <ItemCount initial={1} onAdd={onAdd} /> : 
+                            
+                            <ButtonGroup gap='2'> 
+                                <Button variant='solid' bg='#81b29a'><Link to='/cart'>Ir al carrito</Link></Button>
+                                <Button variant='solid' bg='#a9def9'><Link to='/'>Volver</Link></Button>
+                            </ButtonGroup>
+                        }
+                        
+                    </CardFooter>
+                </Card>
 
-                        </Center>
-
-
-                    </div>
-                )
-            })}
-        </div>
+            </Center>
     )
 }
